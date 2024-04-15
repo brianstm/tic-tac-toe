@@ -86,7 +86,7 @@ function GameLayout() {
 
   function shareLink() {
     navigator.clipboard.writeText(
-      "https://tttapp.vercel.app?code=" + game.gameCode
+      "https://tttweb.vercel.app?code=" + game.gameCode
     )
   }
 
