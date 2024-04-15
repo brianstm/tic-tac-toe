@@ -1,5 +1,7 @@
 # Tic Tac Toe Game
 
+## URL: [Tic Tac Toe](https://tttweb.vercel.app)
+
 ## URL: [Tic Tac Toe API](https://tttapi.vercel.app)
 
 ### Usage:
@@ -23,6 +25,7 @@
 
 ### See also
 
+[![GitHub](https://img.shields.io/badge/GitHub-Tic%20Tac%20Toe%20-181717.svg?logo=github)](https://github.com/brianstm/tic-tac-toe.git)
 [![GitHub](https://img.shields.io/badge/GitHub-Tic%20Tac%20Toe%20API-181717.svg?logo=github)](https://github.com/brianstm/tic-tac-toe-api.git)
 
 > [!NOTE]
