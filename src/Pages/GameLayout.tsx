@@ -2,7 +2,8 @@ import { useParams, useSearchParams } from "react-router-dom"
 import axiosInstance from "../axiosInstance"
 import { useEffect, useState } from "react"
 import { IoPersonCircle } from "react-icons/io5"
-import { CiShare2 } from "react-icons/ci"
+import { FaRegClipboard, FaClipboardCheck } from "react-icons/fa"
+import { MdPeopleOutline, MdPeople } from "react-icons/md"
 
 interface Game {
   gameCode: string
@@ -54,6 +55,7 @@ function GameLayout() {
     rounds: []
   })
   const [reload, setReload] = useState(0)
+  const [showToast, setShowToast] = useState(false)
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -88,6 +90,16 @@ function GameLayout() {
     navigator.clipboard.writeText(
       "https://tttweb.vercel.app?code=" + game.gameCode
     )
+    setShowToast(true)
+    setTimeout(() => setShowToast(false), 3000)
+  }
+
+  function setMultiplayer() {
+    if (multi === "false") {
+      window.location.href = `/game/${game.gameCode}?player=${player}&multi=true`
+    } else {
+      window.location.href = `/game/${game.gameCode}?player=${player}&multi=false`
+    }
   }
 
   const renderGrid = () => {
@@ -187,7 +199,7 @@ function GameLayout() {
             </div>
           </div>
 
-          <div className="flex flex-col h-16 w-16 rounded-full items-center justify-center place-items-center bg-gradient-to-b from-yellow-400 to-yellow-500">
+          <div className="flex flex-col h-16 w-16 rounded-full items-center justify-center place-items-center bg-gradient-to-b from-yellow-300 to-yellow-400">
             <h2 className="font-bold">{getOrdinal(game.rounds.length)}</h2>
             <p className="text-xs font-medium">Round</p>
           </div>
@@ -210,8 +222,12 @@ function GameLayout() {
         </div>
         {renderGrid()}
         <div className="flex justify-center items-center">
-          <div className="bg-gradient-to-b from-yellow-400 to-yellow-500 w-fit py-2 px-4 rounded-lg font-bold">
-            {multi === "false"
+          <div className="bg-gradient-to-b from-yellow-300 to-yellow-400 w-fit py-2 px-4 rounded-lg font-bold">
+            {game.winner === "1"
+              ? `${game.player_1_name} Wins`
+              : game.winner === "0"
+              ? `${game.player_0_name} Wins`
+              : multi === "false"
               ? player === "0" && game.currentPlayer === "1"
                 ? "Your Turn"
                 : player === "1" && game.currentPlayer === "0"
@@ -227,9 +243,69 @@ function GameLayout() {
           </div>
         </div>
       </div>
-      <div className="fixed bottom-5 right-5 bg-white p-4 rounded-full">
-        <CiShare2 size={30} onClick={shareLink} />
+      <div className="fixed bottom-5 left-5 bg-white hover:bg-slate-100 text-blue-600 hover:text-blue-700 p-4 rounded-full">
+        {multi === "true" ? (
+          <MdPeople size={30} onClick={setMultiplayer} />
+        ) : (
+          <MdPeopleOutline size={30} onClick={setMultiplayer} />
+        )}
       </div>
+      <div className="fixed bottom-5 right-5 bg-white hover:bg-slate-100 text-red-600 hover:text-red-700 p-4 rounded-full">
+        {showToast ? (
+          <FaClipboardCheck size={30} />
+        ) : (
+          <FaRegClipboard size={30} onClick={shareLink} />
+        )}
+      </div>
+      {showToast && (
+        <div className="absolute bottom-3 transition ">
+          <div
+            id="toast-success"
+            className="flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800 font-sans"
+            role="alert"
+          >
+            <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-green-100 rounded-lg dark:bg-green-800 dark:text-green-200">
+              <svg
+                className="w-5 h-5"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z" />
+              </svg>
+              <span className="sr-only">Check icon</span>
+            </div>
+            <div className="ms-3 text-sm font-normal">
+              Link Copied to Clipboard
+            </div>
+            <button
+              type="button"
+              className="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
+              data-dismiss-target="#toast-success"
+              aria-label="Close"
+              onClick={(e) => setShowToast(false)}
+            >
+              <span className="sr-only">Close</span>
+              <svg
+                className="w-3 h-3"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 14 14"
+              >
+                <path
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

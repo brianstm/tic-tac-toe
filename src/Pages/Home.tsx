@@ -31,7 +31,6 @@ interface winningLine {
 function Home() {
   const [searchParams] = useSearchParams()
   const code = searchParams.get("code") || ""
-
   const [size, setSize] = useState(3)
   const [disappearing, setDisappearing] = useState(false)
   const [disappearing_rounds, setDisappearingRounds] = useState("")
@@ -58,6 +57,7 @@ function Home() {
     disappearing_rounds: 0,
     rounds: []
   })
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     if (code !== "") {
@@ -74,6 +74,7 @@ function Home() {
 
   function createGame(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    setIsLoading(true)
     axiosInstance
       .post("/new-game", {
         size: String(size),
@@ -88,22 +89,34 @@ function Home() {
         setPlayer0Name(response.data.player_0_name || "")
         setPlayer1Name(response.data.player_1_name || "")
         setCreateOrJoin("lobby")
+        setIsLoading(false)
+      })
+      .catch((error) => {
+        setIsLoading(false)
       })
   }
 
   function findGame(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    axiosInstance.get(`/game/${gameCode}`).then((response) => {
-      setGame(response.data)
-      setGameCode(response.data.gameCode)
-      setPlayer0Name(response.data.player_0_name || "")
-      setPlayer1Name(response.data.player_1_name || "")
-      setCreateOrJoin("lobby")
-    })
+    setIsLoading(true)
+    axiosInstance
+      .get(`/game/${gameCode}`)
+      .then((response) => {
+        setGame(response.data)
+        setGameCode(response.data.gameCode)
+        setPlayer0Name(response.data.player_0_name || "")
+        setPlayer1Name(response.data.player_1_name || "")
+        setCreateOrJoin("lobby")
+        setIsLoading(false)
+      })
+      .catch((error) => {
+        setIsLoading(false)
+      })
   }
 
   function setName(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    setIsLoading(true)
     axiosInstance
       .post("/join-game", {
         gameCode: gameCode,
@@ -121,15 +134,18 @@ function Home() {
         setGameCode(response.data.editedGame.gameCode)
         setPlayer0Name(response.data.editedGame.player_0_name || "")
         setPlayer1Name(response.data.editedGame.player_1_name || "")
-
         if (
           response.data.editedGame.player_0 !== "" &&
           response.data.editedGame.player_1 !== ""
         ) {
+          setIsLoading(false)
           window.location.href = `/game/${gameCode}?player=${
             player1Name !== "" ? "1" : "0"
           }&multi=${multiplayer}`
         }
+      })
+      .catch((error) => {
+        setIsLoading(false)
       })
   }
 
@@ -142,8 +158,8 @@ function Home() {
             <h3 className="text-2xl font-bold pb-3">{game.gameCode}</h3>
           </div>
           {createOrJoin === "create" ? (
-            <div>
-              <h1 className="font-3xl text-lg font-bold ">Create Game</h1>
+            <div className="w-full h-full flex flex-col gap-3 justify-center items-center place-content-center">
+              <h1 className="font-3xl text-lg font-bold">Create Game</h1>
 
               <form
                 className="font-sans flex flex-col gap-2 w-44"
@@ -249,7 +265,8 @@ function Home() {
                 <div>
                   <button
                     type="submit"
-                    className="bg-gradient-to-b from-blue-500 to-blue-700 text-white font-bold py-2 px-4 rounded-lg w-full"
+                    className="bg-gradient-to-b from-blue-500 to-blue-700 text-white font-bold py-2 px-4 rounded-lg w-full hover:from-blue-600 hover:to-blue-800 hover:text-white disabled:from-blue-600 disabled:to-blue-800 disabled:text-white disabled:cursor-not-allowed"
+                    disabled={isLoading}
                   >
                     Create Game
                   </button>
@@ -257,7 +274,7 @@ function Home() {
               </form>
             </div>
           ) : createOrJoin === "join" ? (
-            <div>
+            <div className="flex w-full flex-col justify-center items-center gap-3">
               <h1 className="font-3xl text-lg font-bold ">Join Game</h1>
               <form
                 className="font-sans flex flex-col gap-2 w-44"
@@ -276,21 +293,22 @@ function Home() {
                     name="gamecode"
                     placeholder="XXXXXXXXXX"
                     value={gameCode}
-                    className="w-44 py-2 px-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition duration-500 ease-in-out"
+                    className="w-full py-2 px-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition duration-500 ease-in-out"
                     onChange={(e) => setGameCode(e.target.value)}
                     required
                   />
                 </div>
                 <button
                   type="submit"
-                  className="bg-gradient-to-b from-blue-500 to-blue-700 text-white font-bold py-2 px-4 rounded-lg w-full"
+                  className="bg-gradient-to-b from-blue-500 to-blue-700 text-white font-bold py-2 px-4 rounded-lg w-full hover:from-blue-600 hover:to-blue-800 hover:text-white disabled:from-blue-600 disabled:to-blue-800 disabled:text-white disabled:cursor-not-allowed"
+                  disabled={isLoading}
                 >
                   Find Game
                 </button>
               </form>
             </div>
           ) : createOrJoin === "lobby" ? (
-            <div>
+            <div className="flex w-full flex-col justify-center items-center">
               <h1 className="font-3xl text-lg font-bold ">Lobby</h1>
               <form
                 className="font-sans flex flex-col gap-2 w-44"
@@ -309,7 +327,7 @@ function Home() {
                     name="player_1"
                     placeholder="Johnny"
                     value={player0Name}
-                    className="w-44 py-2 px-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition duration-500 ease-in-out"
+                    className="w-full py-2 px-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition duration-500 ease-in-out"
                     onChange={(e) => setPlayer0Name(e.target.value)}
                   />
                   <label
@@ -324,31 +342,32 @@ function Home() {
                     name="player_2"
                     placeholder="Jane"
                     value={player1Name}
-                    className="w-44 py-2 px-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition duration-500 ease-in-out"
+                    className="w-full py-2 px-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition duration-500 ease-in-out"
                     onChange={(e) => setPlayer1Name(e.target.value)}
                   />
                 </div>
                 <button
                   type="submit"
-                  className="bg-gradient-to-b from-blue-500 to-blue-700 text-white font-bold py-2 px-4 rounded-lg w-full"
+                  className="bg-gradient-to-b from-blue-500 to-blue-700 text-white font-bold py-2 px-4 rounded-lg w-full hover:from-blue-600 hover:to-blue-800 hover:text-white disabled:from-blue-600 disabled:to-blue-800 disabled:text-white disabled:cursor-not-allowed"
+                  disabled={isLoading}
                 >
                   Enter Game
                 </button>
               </form>
             </div>
           ) : (
-            <div className="flex flex-col">
+            <div className="flex w-full flex-col justify-center items-center gap-3">
               <h1 className="font-3xl text-lg font-bold ">Create or Join</h1>
               <div className="flex gap-3">
                 <button
                   onClick={() => setCreateOrJoin("create")}
-                  className="bg-gradient-to-b from-cyan-500 to-blue-600 text-white font-bold py-2 px-4 rounded-lg w-full text-sm"
+                  className="bg-gradient-to-b from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-2 px-4 rounded-lg w-full text-sm"
                 >
                   Create Game
                 </button>
                 <button
                   onClick={() => setCreateOrJoin("join")}
-                  className="bg-gradient-to-b from-cyan-500 to-blue-600 text-white font-bold py-2 px-4 rounded-lg w-full text-sm"
+                  className="bg-gradient-to-b from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-2 px-4 rounded-lg w-full text-sm"
                 >
                   Join Game
                 </button>
